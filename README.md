@@ -3,7 +3,6 @@
 **An AI-powered static malware detection and analysis system.**
 
 Tamal Mishra · BCA (Cybersecurity) · EThames Business School, Hyderabad
-EDC ID `EDC-2024-189` · OU ID `1289-24-861-024`
 
 ---
 
