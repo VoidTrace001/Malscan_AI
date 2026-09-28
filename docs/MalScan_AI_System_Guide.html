@@ -1,0 +1,333 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>MalScan AI — System Guide</title><style>
+@page { size: A4; margin: 17mm 15mm 16mm 15mm; }
+* { box-sizing: border-box; }
+body { font-family: "Segoe UI", -apple-system, system-ui, sans-serif;
+  font-size: 10.2pt; line-height: 1.55; color: #1a1d21; margin: 0; }
+h1,h2,h3 { line-height: 1.25; }
+h1 { font-size: 25pt; margin: 0 0 4pt; letter-spacing: -0.4pt; }
+h2 { font-size: 15pt; margin: 0 0 10pt; padding-bottom: 5pt;
+  border-bottom: 2.5pt solid #1f6feb; color: #0b3a82;
+  break-after: avoid; page-break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 15pt 0 5pt; color: #0b3a82;
+  break-after: avoid; page-break-after: avoid; }
+p { margin: 0 0 8pt; }
+code { font-family: Consolas, ui-monospace, monospace; font-size: 9pt;
+  background: #eef1f5; padding: 1pt 3.5pt; border-radius: 3px; }
+.sub { font-size: 8.4pt; color: #5c6570; font-weight: 400; }
+table { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt;
+  font-size: 9.2pt; }
+th { background: #0b3a82; color: #fff; text-align: left; padding: 5pt 7pt;
+  font-weight: 600; font-size: 9pt; }
+td { padding: 5pt 7pt; border-bottom: 0.5pt solid #d8dde4;
+  vertical-align: top; }
+tbody tr:nth-child(even) { background: #f6f8fa; }
+tr { break-inside: avoid; page-break-inside: avoid; }
+section { break-before: page; page-break-before: page; }
+section.first { break-before: auto; page-break-before: auto; }
+.cover { text-align: center; padding-top: 58mm; }
+.cover .rule { width: 70pt; height: 3.5pt; background: #1f6feb;
+  margin: 13pt auto; }
+.cover .by { margin-top: 26pt; font-size: 11pt; }
+.cover .meta { color: #5c6570; font-size: 9.4pt; margin-top: 3pt; }
+.tag { display: inline-block; background: #e7effb; color: #0b3a82;
+  border-radius: 10px; padding: 1.5pt 8pt; font-size: 8.6pt;
+  font-weight: 600; }
+.lead { font-size: 11pt; color: #3d444d; }
+.box { background: #f6f8fa; border-left: 3pt solid #1f6feb;
+  padding: 8pt 11pt; margin: 10pt 0; break-inside: avoid; }
+.warn { background: #fff8e6; border-left-color: #d98f00; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9pt;
+  margin: 9pt 0; }
+.stat { background: #f6f8fa; border: 0.5pt solid #d8dde4; border-radius: 5px;
+  padding: 8pt 10pt; }
+.stat b { display: block; font-size: 17pt; color: #0b3a82;
+  line-height: 1.15; }
+.stat span { font-size: 8.6pt; color: #5c6570; }
+.toc li { margin-bottom: 3.5pt; }
+ol, ul { margin: 0 0 9pt; padding-left: 17pt; }
+li { margin-bottom: 3pt; }
+.q { font-weight: 600; color: #0b3a82; margin-bottom: 2pt; }
+.qa { margin-bottom: 11pt; break-inside: avoid; page-break-inside: avoid; }
+.flow td:first-child { font-weight: 700; color: #1f6feb; width: 20pt;
+  font-size: 11pt; }
+.nowrap { white-space: nowrap; }
+</style></head><body><div class="cover">
+<div class="tag">System Reference Guide</div>
+<h1>MalScan AI</h1>
+<div class="rule"></div>
+<p class="lead">Detecting malicious software by examining a file's<br>
+structure, without ever running it</p>
+<div class="by"><b>Tamal Mishra</b></div>
+<div class="meta">BCA (Cybersecurity) &middot; EThames Business School, Hyderabad<br>
+EDC ID EDC-2024-189 &middot; OU ID 1289-24-861-024</div>
+<div class="meta" style="margin-top:20pt">
+73 features &middot; 27 detection rules &middot;
+12,000 training rows</div>
+</div><section><h2>1 &nbsp; What MalScan AI is</h2>
+<p class="lead">MalScan AI looks at a file and decides whether it is malicious
+— without ever opening or running it.</p>
+<p>It works the way a forensic examiner would: by studying the structure of the
+thing rather than its behaviour. It measures 73 separate properties
+of a file — how its internal sections are arranged, which Windows functions it
+borrows, how random its contents look, what text is buried inside it — and
+feeds those measurements to a model trained to recognise the patterns malicious
+files tend to share.</p>
+<p>The result is a probability, a verdict of <b>Benign</b>, <b>Suspicious</b>
+or <b>Malicious</b>, and — importantly — a breakdown of exactly which
+properties pushed the score in which direction.</p>
+
+<div class="grid">
+<div class="stat"><b>73</b><span>properties measured per file</span></div>
+<div class="stat"><b>27</b><span>pattern rules applied</span></div>
+<div class="stat"><b>0.9963</b>
+<span>ROC-AUC on held-out test data</span></div>
+<div class="stat"><b>&lt; 1 s</b><span>typical scan of a Windows program</span></div>
+</div>
+
+<h3>The problem it addresses</h3>
+<p>Traditional antivirus works by signature: a catalogue of fingerprints of
+known malware. It is fast and precise, but it can only recognise what someone
+has already found and added to the list. That leaves three predictable gaps:</p>
+<ul>
+<li><b>Zero-day malware</b> — brand new, so nobody has catalogued it yet.</li>
+<li><b>Polymorphic malware</b> — rewrites itself between infections, so its
+fingerprint changes every time.</li>
+<li><b>Packed malware</b> — compressed or encrypted so its bytes look different
+in every build.</li>
+</ul>
+<p>A model that judges <i>structure</i> does not need to have seen the specific
+file. It recognises the traits malicious programs tend to share: randomness
+suggesting hidden content, an import table that has obviously been stripped,
+memory regions that are writable and executable at the same time, function
+combinations that only make sense if you intend to inject code into another
+process.</p>
+
+<div class="box warn"><b>An honest boundary.</b> This complements signature
+scanning; it does not replace it. A signature scanner is near-perfect on
+malware it already knows. MalScan is designed for the cases it does not.</div>
+</section><section><h2>2 &nbsp; How a scan works, step by step</h2>
+<p>Every scan runs the same nine stages. The whole sequence takes under a
+second for a typical Windows program.</p>
+<table class="flow"><thead><tr><th>#</th><th>Stage</th><th>What happens</th><th>Code</th></tr></thead><tbody><tr><td>1</td><td><b>File type detection</b></td><td>Reads the first few bytes of the file and matches them against known signatures. The extension is deliberately ignored, because anyone can rename <code>virus.exe</code> to <code>holiday.jpg</code>; the bytes at the start of a file are far harder to fake.</td><td><code>features/filetype.py</code></td></tr><tr><td>2</td><td><b>Hashing</b></td><td>Computes MD5, SHA-1 and SHA-256 fingerprints, plus a similarity digest that stays close for near-identical files, so repackaged variants of the same sample can be spotted.</td><td><code>features/hashes.py</code></td></tr><tr><td>3</td><td><b>Structural analysis</b></td><td>If the file is a Windows program, its headers, section table, imports, exports and resources are parsed out and examined for anomalies.</td><td><code>features/pe_features.py</code></td></tr><tr><td>4</td><td><b>Randomness measurement</b></td><td>Measures entropy for the whole file, for each section and for every 4 KB block. Ordinary code and text are predictable; compressed or encrypted content is not, so a high reading suggests something is hidden.</td><td><code>features/entropy.py</code></td></tr><tr><td>5</td><td><b>Text mining</b></td><td>Pulls readable text out of the binary and counts web addresses, IP addresses, registry paths, file paths, suspicious keywords, encoded blocks and any executables hidden inside.</td><td><code>features/strings_features.py</code></td></tr><tr><td>6</td><td><b>Rule matching</b></td><td>Runs 27 YARA rules over the file. Each carries a category and a severity from 1 to 5. The number of hits and the worst severity become two of the 73 features.</td><td><code>rules/engine.py</code></td></tr><tr><td>7</td><td><b>Classification</b></td><td>The 73 numbers are handed to the trained model, which returns a probability that the file is malicious. Files without a usable Windows structure are routed to a content scorer instead.</td><td><code>model/predict.py</code></td></tr><tr><td>8</td><td><b>Explanation</b></td><td>Each feature in turn is reset to its typical benign value and the model is asked again. How far the score moves is that feature's contribution to this particular verdict.</td><td><code>model/explain.py</code></td></tr><tr><td>9</td><td><b>Recording</b></td><td>The verdict, the evidence and the hashes are written to SQLite. The file itself is never stored.</td><td><code>storage/history.py</code></td></tr></tbody></table>
+<div class="box"><b>Nothing is ever executed.</b> At no point is the file
+written somewhere it could run, handed to a command shell, loaded as a library
+or launched. It is read into memory as a plain block of bytes and taken apart
+as data. That is what makes it safe to examine a genuine malware sample.</div>
+</section><section><h2>3 &nbsp; What each technology does and why it was chosen</h2>
+<p>Every component was chosen for a specific reason. This table is the direct
+answer to "what did you use, and why that?"</p>
+<table class=""><thead><tr><th>Technology</th><th>What it does</th><th>Why this one</th></tr></thead><tbody><tr><td><b>Python 3.9+<br><span class='sub'>running 3.13.15</span></b></td><td>The language the whole system is written in.</td><td>It is the only ecosystem with both mature binary-parsing libraries and mature machine-learning libraries. Using one language for the parser, the model and the interface removes every translation layer between them.</td></tr><tr><td><b>Streamlit</b></td><td>Turns the Python code into a web interface: upload box, tabs, charts, tables.</td><td>It renders a browser UI directly from Python, so there is no separate front-end project, no JavaScript build step and no API layer to keep in sync. For a single developer that removes an entire tier of work.</td></tr><tr><td><b>pefile</b></td><td>Reads the internal structure of a Windows program: headers, sections, imports, exports, resources.</td><td>It is pure Python and treats the file strictly as a data structure. It never asks Windows to load the program, which is exactly the property a malware scanner needs.</td></tr><tr><td><b>YARA<br><span class='sub'>yara-python</span></b></td><td>Matches the file against 27 written rules describing known malicious patterns.</td><td>YARA is the industry standard for malware pattern rules and is used by VirusTotal and most commercial vendors. Its rule syntax is readable, so the detection logic can be inspected and extended by hand.</td></tr><tr><td><b>scikit-learn</b></td><td>Provides the Random Forest classifier, the probability calibration and every evaluation metric.</td><td>It is the reference toolkit for classical machine learning, with the grouped splitting and calibration methods this project depends on built in and well tested.</td></tr><tr><td><b>XGBoost</b></td><td>A second, competing classifier (gradient boosting).</td><td>Training two different algorithms and selecting between them on measured performance is more defensible than asserting one is better. Both are trained every run and the comparison is recorded.</td></tr><tr><td><b>NumPy</b></td><td>Holds the feature vectors as numeric arrays and powers the explanation step.</td><td>The explainer builds 74 variants of the file's feature vector and scores them in one batch. NumPy makes that a single fast operation instead of a loop.</td></tr><tr><td><b>pandas</b></td><td>Organises the training set and every table shown in the interface.</td><td>It is the standard way to handle labelled tabular data in Python and reads and writes the CSV/Parquet training files directly.</td></tr><tr><td><b>Plotly</b></td><td>Draws the charts: contribution bars, entropy graphs, ROC curves, dashboards.</td><td>Its charts are interactive inside Streamlit, so values can be hovered and inspected rather than just looked at.</td></tr><tr><td><b>SQLite</b></td><td>Stores the history of every scan.</td><td>It ships inside Python, needs no server, no installation and no configuration, and keeps the whole database in one file that can be copied or deleted.</td></tr><tr><td><b>joblib</b></td><td>Saves the trained model to disk and loads it back.</td><td>It is the format scikit-learn itself recommends, and it handles the large numeric arrays inside a trained forest efficiently.</td></tr><tr><td><b>python-magic<br><span class='sub'>optional</span></b></td><td>Identifies file types from their content.</td><td>Optional by design. If it is missing, MalScan falls back to its own magic-byte table, so a missing system library degrades the result instead of stopping the program.</td></tr></tbody></table>
+<h3>Designed to degrade, not to fail</h3>
+<p>Two of these are optional on purpose. Without <code>yara-python</code> a
+built-in pure-Python matcher handles the plain-text patterns from the same rule
+file. Without <code>python-magic</code> the bundled magic-byte table identifies
+file types. In both cases the program keeps working with reduced capability
+instead of refusing to start, and the sidebar always states which backend is
+actually live — so the user is never misled about what is running.</p>
+</section><section><h2>4 &nbsp; The 73 properties measured</h2>
+<p>These are the "extracts" — every measurement taken from a file, in the exact
+order the model receives them. They are grouped into six families. The
+descriptions below are the same words shown to the user in the interface.</p><h3>File &nbsp;<span class='sub'>11 features</span></h3><table class=""><thead><tr><th>#</th><th>Internal name</th><th>What it measures</th></tr></thead><tbody><tr><td>1</td><td><code>file_size_log</code></td><td>How big the file is</td></tr><tr><td>2</td><td><code>entropy_overall</code></td><td>How random the whole file looks, from 0 to 8 - high means packed or encrypted</td></tr><tr><td>3</td><td><code>entropy_first_block</code></td><td>How random the opening 4 KB looks, where the file&#x27;s header sits</td></tr><tr><td>4</td><td><code>entropy_last_block</code></td><td>How random the final 4 KB looks, where extra data tends to get tacked on</td></tr><tr><td>5</td><td><code>printable_ratio</code></td><td>How much of the file is readable text</td></tr><tr><td>6</td><td><code>null_ratio</code></td><td>How much of the file is empty padding</td></tr><tr><td>7</td><td><code>byte_chi2</code></td><td>How evenly the byte values are spread - a very even spread suggests encryption</td></tr><tr><td>8</td><td><code>is_pe</code></td><td>The file is a Windows program</td></tr><tr><td>9</td><td><code>is_script</code></td><td>The file is a script or plain text</td></tr><tr><td>10</td><td><code>is_document</code></td><td>The file is a document, such as Office or PDF</td></tr><tr><td>11</td><td><code>is_archive</code></td><td>The file is a compressed archive, such as a ZIP</td></tr></tbody></table><h3>PE Header &nbsp;<span class='sub'>22 features</span></h3><table class=""><thead><tr><th>#</th><th>Internal name</th><th>What it measures</th></tr></thead><tbody><tr><td>1</td><td><code>pe_is_64bit</code></td><td>Built for 64-bit Windows</td></tr><tr><td>2</td><td><code>pe_is_dll</code></td><td>It is a shared library rather than a program you run directly</td></tr><tr><td>3</td><td><code>pe_num_sections</code></td><td>How many parts the program is divided into</td></tr><tr><td>4</td><td><code>pe_timestamp_plausible</code></td><td>The build date on the file looks believable</td></tr><tr><td>5</td><td><code>pe_timestamp_age_years</code></td><td>How many years ago the file claims it was built</td></tr><tr><td>6</td><td><code>pe_size_of_code_log</code></td><td>How much of the file is actual program code</td></tr><tr><td>7</td><td><code>pe_size_of_image_log</code></td><td>How much memory the program asks for when it loads</td></tr><tr><td>8</td><td><code>pe_size_of_headers</code></td><td>How much room the file&#x27;s own headers take up</td></tr><tr><td>9</td><td><code>pe_checksum_valid</code></td><td>The file&#x27;s built-in integrity check still matches, so it has not been edited since it was built</td></tr><tr><td>10</td><td><code>pe_subsystem_gui</code></td><td>Runs as a windowed application</td></tr><tr><td>11</td><td><code>pe_subsystem_console</code></td><td>Runs in a console window</td></tr><tr><td>12</td><td><code>pe_aslr</code></td><td>Keeps the standard defence that loads the program at a random address</td></tr><tr><td>13</td><td><code>pe_dep</code></td><td>Keeps the standard defence that stops data being run as code</td></tr><tr><td>14</td><td><code>pe_seh</code></td><td>Leaves Windows&#x27; normal error handling switched on</td></tr><tr><td>15</td><td><code>pe_has_debug</code></td><td>Still carries leftover debugging information</td></tr><tr><td>16</td><td><code>pe_has_relocs</code></td><td>Can be loaded at a different address than it prefers</td></tr><tr><td>17</td><td><code>pe_has_tls</code></td><td>Runs hidden setup code before the program&#x27;s real starting point, which is sometimes used to dodge analysis</td></tr><tr><td>18</td><td><code>pe_has_resources</code></td><td>Bundles resources such as icons or images</td></tr><tr><td>19</td><td><code>pe_has_signature</code></td><td>Carries a digital signature from whoever published it</td></tr><tr><td>20</td><td><code>pe_has_version_info</code></td><td>States a publisher, product name and version</td></tr><tr><td>21</td><td><code>pe_ep_in_code_section</code></td><td>Starts running inside the normal code area, as a legitimate program does</td></tr><tr><td>22</td><td><code>pe_ep_section_entropy</code></td><td>How random the code looks at the exact point the program starts</td></tr></tbody></table><h3>Sections &nbsp;<span class='sub'>10 features</span></h3><table class=""><thead><tr><th>#</th><th>Internal name</th><th>What it measures</th></tr></thead><tbody><tr><td>1</td><td><code>sec_entropy_mean</code></td><td>Average randomness across every part of the program</td></tr><tr><td>2</td><td><code>sec_entropy_max</code></td><td>Randomness of the most scrambled-looking part</td></tr><tr><td>3</td><td><code>sec_entropy_min</code></td><td>Randomness of the least scrambled-looking part</td></tr><tr><td>4</td><td><code>sec_entropy_std</code></td><td>How much the randomness varies from part to part</td></tr><tr><td>5</td><td><code>sec_high_entropy_count</code></td><td>How many parts look packed or encrypted</td></tr><tr><td>6</td><td><code>sec_wx_count</code></td><td>Parts the program can both rewrite and run, which is how self-modifying code behaves</td></tr><tr><td>7</td><td><code>sec_zero_raw_count</code></td><td>Parts that reserve memory but hold nothing on disk, so they get filled in while running</td></tr><tr><td>8</td><td><code>sec_nonstandard_names</code></td><td>Parts with unusual names that normal build tools do not produce</td></tr><tr><td>9</td><td><code>sec_vsize_ratio_mean</code></td><td>Average gap between the memory a part claims and what it actually holds</td></tr><tr><td>10</td><td><code>sec_vsize_ratio_max</code></td><td>The largest such gap - a wide one suggests the file unpacks itself</td></tr></tbody></table><h3>Imports &nbsp;<span class='sub'>13 features</span></h3><table class=""><thead><tr><th>#</th><th>Internal name</th><th>What it measures</th></tr></thead><tbody><tr><td>1</td><td><code>imp_dll_count</code></td><td>How many Windows libraries the program borrows from</td></tr><tr><td>2</td><td><code>imp_func_count</code></td><td>How many Windows functions the program borrows</td></tr><tr><td>3</td><td><code>imp_has_kernel32</code></td><td>Uses core Windows functions for files, memory and processes</td></tr><tr><td>4</td><td><code>imp_has_advapi32</code></td><td>Uses the Windows registry or system services</td></tr><tr><td>5</td><td><code>imp_has_network</code></td><td>Is able to communicate over the network</td></tr><tr><td>6</td><td><code>imp_has_user32</code></td><td>Can create windows, or watch keyboard and mouse input</td></tr><tr><td>7</td><td><code>imp_has_crypt</code></td><td>Uses Windows encryption functions</td></tr><tr><td>8</td><td><code>imp_has_shell</code></td><td>Can launch other programs or open files</td></tr><tr><td>9</td><td><code>imp_suspicious_count</code></td><td>How many of the functions it borrows are on our watchlist</td></tr><tr><td>10</td><td><code>imp_suspicious_ratio</code></td><td>What share of the functions it borrows are on our watchlist</td></tr><tr><td>11</td><td><code>imp_dynamic_resolution</code></td><td>Looks its functions up while running instead of declaring them upfront, which is a common way to hide what a program intends to do</td></tr><tr><td>12</td><td><code>imp_table_sparse</code></td><td>Declares far fewer functions than a file this size normally would, which is typical of packed files</td></tr><tr><td>13</td><td><code>exp_count</code></td><td>How many functions this file offers to other programs</td></tr></tbody></table><h3>Content &nbsp;<span class='sub'>12 features</span></h3><table class=""><thead><tr><th>#</th><th>Internal name</th><th>What it measures</th></tr></thead><tbody><tr><td>1</td><td><code>str_count_log</code></td><td>How many readable pieces of text the file contains</td></tr><tr><td>2</td><td><code>str_avg_len</code></td><td>Average length of those pieces of text</td></tr><tr><td>3</td><td><code>str_max_len</code></td><td>Length of the longest piece of text</td></tr><tr><td>4</td><td><code>str_max_entropy</code></td><td>How scrambled the most random piece of text looks</td></tr><tr><td>5</td><td><code>str_urls</code></td><td>How many web addresses are buried in the file</td></tr><tr><td>6</td><td><code>str_ips</code></td><td>How many IP addresses are buried in the file</td></tr><tr><td>7</td><td><code>str_registry</code></td><td>How many Windows registry locations are named</td></tr><tr><td>8</td><td><code>str_paths</code></td><td>How many file or folder locations are named</td></tr><tr><td>9</td><td><code>str_suspicious_kw</code></td><td>How many words from our watchlist turn up</td></tr><tr><td>10</td><td><code>str_base64_blobs</code></td><td>Long encoded blocks that may be a hidden payload</td></tr><tr><td>11</td><td><code>str_has_pdb</code></td><td>Still carries the build path from the original developer&#x27;s machine</td></tr><tr><td>12</td><td><code>str_embedded_mz</code></td><td>Whole other programs hidden inside this one</td></tr></tbody></table><h3>Packing &amp; Rules &nbsp;<span class='sub'>5 features</span></h3><table class=""><thead><tr><th>#</th><th>Internal name</th><th>What it measures</th></tr></thead><tbody><tr><td>1</td><td><code>overlay_ratio</code></td><td>How much data is tacked on past the program&#x27;s proper end</td></tr><tr><td>2</td><td><code>packer_hit</code></td><td>Matches a known packer such as UPX, meaning the real contents have been compressed out of sight</td></tr><tr><td>3</td><td><code>rule_hits</code></td><td>How many detection rules this file set off</td></tr><tr><td>4</td><td><code>rule_max_severity</code></td><td>How serious the worst rule it set off was, from 0 to 5</td></tr><tr><td>5</td><td><code>res_entropy_max</code></td><td>How scrambled the most random bundled resource looks</td></tr></tbody></table><div class="box"><b>Why a fixed order matters.</b> The list lives in one
+file, <code>features/schema.py</code>, and the extractor, the model and the
+explainer all read it from there. A model trained against a different list is
+rejected on load rather than being allowed to produce nonsense from
+mismatched columns.</div>
+</section><section><h2>5 &nbsp; The 27 detection rules</h2>
+<p>Alongside the model, the file is matched against 27 hand-written
+YARA rules describing known malicious techniques. Each has a category and a
+severity from 1 to 5.</p>
+<div class="box"><b>A rule hit is evidence, not a verdict.</b> Ordinary Windows
+software legitimately uses many of these same functions. That is exactly why
+rule hits enter the model as two features among 73 rather than
+deciding the answer by themselves.</div><h3>anti-analysis &nbsp;<span class='sub'>3 rules</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>4</b></td><td><code>AntiVM_Environment_Checks</code></td><td>Looks for virtual machine or sandbox artefacts</td></tr><tr><td><b>4</b></td><td><code>AntiAnalysis_Tool_Detection</code></td><td>Checks for the presence of analysis tools</td></tr><tr><td><b>3</b></td><td><code>AntiDebug_API_Checks</code></td><td>Anti-debugging API checks</td></tr></tbody></table><h3>c2 &nbsp;<span class='sub'>1 rule</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>3</b></td><td><code>C2_Hardcoded_IP_Endpoint</code></td><td>Hardcoded IP address plus socket APIs</td></tr></tbody></table><h3>credential-theft &nbsp;<span class='sub'>1 rule</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>5</b></td><td><code>Theft_Credential_Access</code></td><td>Targets stored credentials or LSASS memory</td></tr></tbody></table><h3>downloader &nbsp;<span class='sub'>1 rule</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>4</b></td><td><code>C2_Network_Download_Execute</code></td><td>Downloads a file and executes it</td></tr></tbody></table><h3>injection &nbsp;<span class='sub'>3 rules</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>5</b></td><td><code>Injection_Classic_RemoteThread</code></td><td>Classic remote-thread process injection API sequence</td></tr><tr><td><b>5</b></td><td><code>Injection_Process_Hollowing</code></td><td>Process hollowing / RunPE indicators</td></tr><tr><td><b>4</b></td><td><code>Injection_APC_Queue</code></td><td>APC-injection primitives</td></tr></tbody></table><h3>lolbin &nbsp;<span class='sub'>2 rules</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>4</b></td><td><code>LOLBin_PowerShell_Encoded</code></td><td>Encoded or hidden PowerShell command line</td></tr><tr><td><b>4</b></td><td><code>LOLBin_Script_Download_Cradle</code></td><td>Script download-and-run cradle</td></tr></tbody></table><h3>maldoc &nbsp;<span class='sub'>2 rules</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>4</b></td><td><code>Document_Macro_AutoExec</code></td><td>Office document with auto-executing macro entry points</td></tr><tr><td><b>3</b></td><td><code>PDF_Suspicious_Action</code></td><td>PDF containing JavaScript or an auto-launch action</td></tr></tbody></table><h3>obfuscation &nbsp;<span class='sub'>3 rules</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>3</b></td><td><code>Injection_Dynamic_API_Resolution</code></td><td>Resolves APIs at runtime while importing almost nothing</td></tr><tr><td><b>3</b></td><td><code>Anomaly_Reversed_Strings</code></td><td>API names stored reversed to defeat string scanning</td></tr><tr><td><b>2</b></td><td><code>Obfuscation_Base64_Payload</code></td><td>Long base64 blob embedded in the file (possible packed payload)</td></tr></tbody></table><h3>packing &nbsp;<span class='sub'>2 rules</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>3</b></td><td><code>Packer_Commercial_Protector</code></td><td>Commercial protector or virtualiser (Themida/VMProtect/ASPack/Enigma)</td></tr><tr><td><b>2</b></td><td><code>Packer_UPX</code></td><td>UPX-packed executable</td></tr></tbody></table><h3>persistence &nbsp;<span class='sub'>2 rules</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>4</b></td><td><code>Persistence_Registry_Run_Key</code></td><td>Writes to a Run key for persistence</td></tr><tr><td><b>3</b></td><td><code>Persistence_Scheduled_Task_Or_Service</code></td><td>Creates a scheduled task or a Windows service</td></tr></tbody></table><h3>privilege &nbsp;<span class='sub'>1 rule</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>3</b></td><td><code>Privilege_Token_Manipulation</code></td><td>Adjusts process privileges (e.g. SeDebugPrivilege)</td></tr></tbody></table><h3>ransomware &nbsp;<span class='sub'>3 rules</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>5</b></td><td><code>Ransomware_Shadow_Copy_Deletion</code></td><td>Deletes volume shadow copies to block recovery</td></tr><tr><td><b>5</b></td><td><code>Ransomware_Note_Language</code></td><td>Extortion / ransom note wording</td></tr><tr><td><b>4</b></td><td><code>Ransomware_Crypto_Primitives</code></td><td>Bulk file enumeration combined with encryption APIs</td></tr></tbody></table><h3>spyware &nbsp;<span class='sub'>1 rule</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>4</b></td><td><code>Theft_Keylogging</code></td><td>Keyboard or clipboard capture primitives</td></tr></tbody></table><h3>structure &nbsp;<span class='sub'>1 rule</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>3</b></td><td><code>Anomaly_Embedded_Executable</code></td><td>A second PE executable is embedded inside the file</td></tr></tbody></table><h3>test &nbsp;<span class='sub'>1 rule</span></h3><table class=""><thead><tr><th>Sev</th><th>Rule</th><th>What it looks for</th></tr></thead><tbody><tr><td><b>5</b></td><td><code>Test_EICAR_Signature</code></td><td>EICAR anti-malware test file (harmless, used to verify scanners)</td></tr></tbody></table></section><section><h2>6 &nbsp; The machine learning, explained plainly</h2>
+
+<h3>What the model actually is</h3>
+<p>A <b>Random Forest</b> is a large collection of decision trees. Each tree
+asks a sequence of yes/no questions about the numbers it is given — "is the
+entropy above 7.4?", "are there fewer than eight imports?" — and arrives at a
+guess. This model contains 400 such trees, and the forest's answer is the vote
+across all of them. Tree-based models were chosen because the features are full
+of exactly those natural cut-off points, which trees handle directly and
+without any rescaling of the data.</p>
+
+<h3>Where the training data came from</h3>
+<p>This is the part that most deserves scrutiny, and it is stated openly rather
+than buried.</p>
+<p><b>The benign half is measured, not invented.</b>
+1,000 real Windows programs from this machine's system
+folders were passed through the <i>same</i> extractor the scanner uses live. So
+the awkward realities of genuine software survive into the data instead of
+being idealised away.</p>
+<p><b>The malicious half is synthesised from documented behaviour profiles.</b>
+A live malware corpus cannot be hosted for a student project. Instead each
+synthetic sample <i>starts as a real benign file's measurements</i> and then has
+a family profile applied, shifting only those properties that malware research
+consistently finds meaningful. Six families are modelled:
+<code>packed_dropper</code>, <code>ransomware</code>, <code>rat_backdoor</code>, <code>spyware_keylogger</code>, <code>injector_loader</code>, <code>trojanized_installer</code>.</p>
+<p>That shared real backbone is what makes the exercise meaningful. Generating
+malicious rows from nothing would let the model separate the classes on
+artefacts of the generator rather than on anything security-relevant.</p>
+
+<table class=""><thead><tr><th>Dataset property</th><th>Value</th></tr></thead><tbody><tr><td>Total rows</td><td>12,000</td></tr><tr><td>Benign / malicious</td><td>6,000 / 6,000</td></tr><tr><td>Real source binaries</td><td>1,000</td></tr><tr><td>Deliberately hard benign rows</td><td>720 <span class='sub'>(packed but legitimate)</span></td></tr><tr><td>Deliberately subtle malicious rows</td><td>877 <span class='sub'>(partial profile only)</span></td></tr><tr><td>Train / test rows</td><td>9,529 / 2,471</td></tr><tr><td>Split method</td><td>GroupShuffleSplit by source binary</td></tr><tr><td>Source files spanning the split</td><td><b>0</b> <span class='sub'>(asserted by the trainer)</span></td></tr></tbody></table>
+
+<div class="box"><b>Why the split is grouped.</b> Several rows descend from the
+same original binary. Splitting at random would scatter near-duplicates across
+both sides, so the model would be tested on files it had effectively already
+seen and every score would be inflated. Splitting by source binary prevents
+that, and the trainer refuses to proceed if any file appears on both sides.</div>
+
+<h3>Choosing between the two models</h3>
+<p>Both algorithms are trained every run and compared on held-out data.</p>
+<table class=""><thead><tr><th>Measure</th><th>Random Forest</th><th>XGBoost</th><th>What it means</th></tr></thead><tbody><tr><td>Accuracy</td><td>0.9842</td><td>0.9887</td><td>Share of test files judged correctly</td></tr><tr><td>Precision</td><td>0.9884</td><td>0.9958</td><td>When it says malicious, how often it is right</td></tr><tr><td>Recall</td><td>0.9795</td><td>0.9811</td><td>Share of malicious files it actually caught</td></tr><tr><td>F1</td><td>0.9839</td><td>0.9884</td><td>Balance of precision and recall</td></tr><tr><td><b>ROC-AUC</b></td><td><b>0.9963</b></td><td><b>0.9962</b></td><td><b>Ranking quality at any threshold &mdash; the selection criterion</b></td></tr><tr><td>False alarm rate</td><td>0.0112</td><td>0.004</td><td>Clean files wrongly flagged</td></tr><tr><td>Miss rate</td><td>0.0205</td><td>0.0189</td><td>Malicious files wrongly cleared</td></tr></tbody></table>
+<p><b>RandomForest was selected</b> on ROC-AUC, which measures how
+well the model ranks files regardless of where the cut-off is placed — the
+right criterion here, because the threshold is adjustable at scan time. Note
+that XGBoost was actually better on raw accuracy; the comparison is recorded
+rather than quietly dropped.</p>
+<p>Cross-validation over 5 grouped folds
+gave a mean ROC-AUC of <b>0.9961</b>
+(standard deviation 0.0006), so the result is
+stable rather than a lucky split.</p>
+
+<h3>Calibration: making the percentage mean something</h3>
+<p>If 70% of the trees vote "malicious", that is <i>not</i> the same as a 70%
+chance the file is malicious. Isotonic calibration corrects the raw scores
+against held-out data so the number shown to a user carries its ordinary
+meaning. Measured by Brier score, where lower is better, this improved the
+figure from <b>0.0178</b> to
+<b>0.012</b>.</p>
+
+<div class="box warn"><b>What the accuracy figure does and does not mean.</b>
+It shows the model learned the relationship <i>present in this dataset</i>
+between file structure and maliciousness. It is <b>not</b> a detection rate
+measured against live malware. Saying "MalScan detects
+98.4% of real malware" would be wrong, and the project
+states so in its own interface.</div>
+</section><section><h2>7 &nbsp; The verdict, and how it is justified</h2>
+
+<h3>Three outcomes, not two</h3>
+<table class=""><thead><tr><th>Verdict</th><th>Probability</th><th>Meaning</th></tr></thead><tbody><tr><td><b>Benign</b></td><td>below 0.4</td><td>Nothing structurally concerning</td></tr><tr><td><b>Suspicious</b></td><td>0.4 &ndash; 0.65</td><td>Genuinely ambiguous &mdash; a person should look</td></tr><tr><td><b>Malicious</b></td><td>0.65 and above</td><td>Multiple structural indicators agree</td></tr></tbody></table>
+<p>The middle band exists deliberately. Forced into a yes/no answer, the model
+must commit on files it genuinely cannot separate — and legitimate packed
+software trips many of the same indicators as malware. "Someone should review
+this" is a more honest answer than a confident coin flip. Both thresholds can
+be moved during a scan, and the Model page shows what each setting costs in
+missed malware against false alarms:</p>
+<table class=""><thead><tr><th>Threshold</th><th>Missed malware</th><th>False alarms</th><th>Precision</th><th>Recall</th></tr></thead><tbody><tr><td>0.05</td><td>9</td><td>134</td><td>0.9001</td><td>0.9926</td></tr><tr><td>0.1</td><td>13</td><td>60</td><td>0.9525</td><td>0.9893</td></tr><tr><td>0.15</td><td>15</td><td>48</td><td>0.9616</td><td>0.9877</td></tr><tr><td>0.2</td><td>15</td><td>28</td><td>0.9772</td><td>0.9877</td></tr><tr><td>0.25</td><td>18</td><td>24</td><td>0.9804</td><td>0.9852</td></tr><tr><td>0.3</td><td>19</td><td>20</td><td>0.9836</td><td>0.9844</td></tr><tr><td>0.35</td><td>22</td><td>18</td><td>0.9852</td><td>0.9819</td></tr><tr><td>0.4</td><td>23</td><td>14</td><td>0.9884</td><td>0.9811</td></tr><tr><td>0.45</td><td>25</td><td>10</td><td>0.9917</td><td>0.9795</td></tr></tbody></table>
+
+<h3>Why this verdict: the explanation method</h3>
+<p>A bare percentage is not much use on its own, so every scan comes with an
+attribution built by <b>ablation</b>:</p>
+<ol>
+<li>The file is scored normally.</li>
+<li>One feature is reset to the typical value for a harmless file, with the
+other 72 left exactly as they are.</li>
+<li>The model is asked again. However far the score moves is that feature's
+contribution.</li>
+<li>This repeats for every feature, and the largest movers are shown as a bar
+chart with a plain-language summary beneath.</li>
+</ol>
+<p>It is the same idea as SHAP, a standard explainability technique, but it
+needs no extra library and costs a single batched pass, which keeps a scan
+inside its one-second budget.</p>
+<div class="box"><b>Two different questions.</b> The feature importances on the
+Model page say what matters <i>generally</i>, across all files. The ablation
+says what mattered <i>for this one file</i>. They frequently disagree, and that
+is expected.</div>
+
+<h3>Which properties matter most overall</h3>
+<table class=""><thead><tr><th>Rank</th><th>Feature</th><th>Importance</th></tr></thead><tbody><tr><td>1</td><td><code>pe_has_version_info</code></td><td>0.10385</td></tr><tr><td>2</td><td><code>rule_hits</code></td><td>0.098</td></tr><tr><td>3</td><td><code>imp_suspicious_ratio</code></td><td>0.09446</td></tr><tr><td>4</td><td><code>rule_max_severity</code></td><td>0.08084</td></tr><tr><td>5</td><td><code>str_embedded_mz</code></td><td>0.06541</td></tr><tr><td>6</td><td><code>imp_suspicious_count</code></td><td>0.0429</td></tr><tr><td>7</td><td><code>str_suspicious_kw</code></td><td>0.04075</td></tr><tr><td>8</td><td><code>str_urls</code></td><td>0.03735</td></tr><tr><td>9</td><td><code>sec_wx_count</code></td><td>0.03549</td></tr><tr><td>10</td><td><code>sec_entropy_mean</code></td><td>0.03308</td></tr></tbody></table>
+
+<h3>Knowing when not to answer</h3>
+<p>Every training row came from a real Windows binary whose structure parsed.
+A text file or a Word document has none of that, so forty-odd structural
+features sit at zero — a region of the problem the model has never seen. Asked
+anyway, it does not answer cautiously; it answers unpredictably. A harmless
+166-byte text file once came back at <b>59% malicious</b>, simply because "no
+imports, no sections" resembles a stripped binary more than a normal one.</p>
+<p>So MalScan stops asking. Without usable structure the file is scored on what
+it does have — rule matches, text indicators, overall randomness — and the
+verdict states which engine produced it and that the evidence is weaker.</p>
+</section><section><h2>8 &nbsp; Safety, privacy and speed</h2>
+
+<h3>The safety model</h3>
+<ul>
+<li>Uploaded files stay in memory as a plain byte buffer and are parsed as
+data. Nothing is written to an executable location, passed to a shell, imported
+as a library or run.</li>
+<li>The buffer is discarded as soon as the scan returns.</li>
+<li>The history database stores the analysis and the hashes — <b>never the
+file</b>. That is what makes it safe to keep.</li>
+<li>Nothing is transmitted anywhere. The VirusTotal link on a result is
+constructed locally from the hash; opening it is the user's choice.</li>
+<li>Uploads are capped at 64 MB so a single large file
+cannot exhaust memory.</li>
+</ul>
+
+<h3>How fast it is</h3>
+<table class=""><thead><tr><th>File</th><th>Size</th><th>Scan time</th></tr></thead><tbody><tr><td>Text, script or document</td><td>under 2 KB</td><td>1&ndash;2 ms</td></tr><tr><td>High-randomness blob</td><td>256 KB</td><td>~52 ms</td></tr><tr><td>Malformed Windows program</td><td>2 KB</td><td>~61 ms</td></tr><tr><td>Real system binary <span class='sub'>(full model path)</span></td><td>352 KB</td><td>~890 ms</td></tr></tbody></table>
+<p>Only files with a parsable Windows structure reach the trained model, which
+is why they cost the most. Three optimisations keep that path under a second:
+inference is pinned to a single thread — the forest is built for parallel
+training, but for a single file the coordination cost exceeded the work itself;
+only the parts of the file structure actually read are parsed; and the internal
+checksum is recomputed only when the file carries one to compare against.
+Together these took a real-binary scan from 1883 ms to 889 ms with
+byte-identical results.</p>
+<p>Loading the model costs a further 2&ndash;5 seconds, once when the program
+starts. The web app pays that once per session.</p>
+</section><section><h2>9 &nbsp; What it is useful for</h2>
+<table class=""><thead><tr><th>Use</th><th>How it helps</th></tr></thead><tbody><tr><td><b>Triaging an unknown file</b></td><td>Someone receives an attachment or downloads an installer and wants a reasoned opinion before opening it. MalScan gives a verdict plus the evidence behind it in about a second.</td></tr><tr><td><b>Catching what signatures miss</b></td><td>Signature scanners only recognise malware someone has already catalogued. Because MalScan judges structure rather than exact bytes, it can flag a sample it has never seen, which is the entire argument for the approach.</td></tr><tr><td><b>Bulk checking a folder</b></td><td>The command-line scanner walks a directory tree and emits JSON, so it can be scripted into a larger workflow or scheduled.</td></tr><tr><td><b>Teaching and learning static analysis</b></td><td>Every stage is visible: the headers, the section permissions, the entropy graph, the matched rules, the per-feature contributions. It shows how the conclusion was reached rather than only stating it.</td></tr><tr><td><b>Demonstrating explainable AI</b></td><td>Security tools are often criticised for being unaccountable. Every verdict here can be traced to specific measurable properties of the file.</td></tr><tr><td><b>Keeping an audit trail</b></td><td>The scan history records what was examined and what was concluded, without ever retaining the files themselves.</td></tr></tbody></table>
+
+<h3>Being straight about the limits</h3>
+<ul>
+<li><b>Static analysis cannot observe behaviour.</b> A file that only decrypts
+its payload once running leaves very little on disk to find. This is the
+fundamental ceiling of the approach, and the reason sandbox analysis is the
+most valuable thing that could be added.</li>
+<li><b>A verdict is evidence, not proof.</b> Legitimate packed software trips
+many of the same indicators. Hence the Suspicious band.</li>
+<li><b>Non-Windows files get weaker analysis.</b> The structural features are
+specific to Windows programs. Documents and scripts are still typed, mined and
+rule-matched, and the scanner says outright when a verdict rests only on
+those.</li>
+<li><b>The malicious training class is synthesised.</b> The accuracy figure
+reflects a relationship learned from that data, not a field detection rate.</li>
+<li><b>Rule matches are inputs, not conclusions.</b> Ordinary Windows libraries
+match several bundled rules, which is expected.</li>
+</ul>
+</section><section><h2>10 &nbsp; How far it could be taken</h2>
+<p>The current system is a working prototype with clear, honest boundaries.
+Each of the following is a genuine next step rather than a wish.</p>
+<table class=""><thead><tr><th>Extension</th><th>Effort</th><th>What it would add</th></tr></thead><tbody><tr><td><b>Cross-reference with VirusTotal</b></td><td><span class='nowrap'>Small</span></td><td>The SHA-256 is already computed and linked. Calling the VirusTotal API would add 70+ other engines' opinions beside MalScan's own.</td></tr><tr><td><b>Train on a real malware corpus</b></td><td><span class='nowrap'>Medium</span></td><td>The training script already accepts a CSV or Parquet file with the 73 feature columns and a label. Supplying real samples would replace the synthesised malicious class and turn the accuracy figure into a genuine detection rate.</td></tr><tr><td><b>Support more file formats</b></td><td><span class='nowrap'>Medium</span></td><td>The structural features are specific to Windows programs. Equivalent extractors for Android APKs, Linux ELF binaries and Office macros would extend real coverage beyond PE files.</td></tr><tr><td><b>Dynamic analysis in a sandbox</b></td><td><span class='nowrap'>Large</span></td><td>Running the file in an isolated virtual machine and watching its actual behaviour would catch the one thing static analysis fundamentally cannot: a payload that only decrypts itself once running.</td></tr><tr><td><b>Deploy as a hosted service</b></td><td><span class='nowrap'>Medium</span></td><td>Moving from a local app to a shared web service with accounts, quotas and an upload queue would let a whole team use one instance.</td></tr><tr><td><b>Continuous retraining</b></td><td><span class='nowrap'>Medium</span></td><td>New malware appears constantly. A scheduled retraining pipeline that ingests newly labelled samples would stop the model ageing.</td></tr></tbody></table>
+<h3>The single most valuable addition</h3>
+<p>Training on a real labelled malware corpus. The path is already built — the
+training script accepts any CSV or Parquet file carrying the 73
+feature columns plus a label:</p>
+<p><code>python -m malscan.model.train --dataset real_corpus.csv</code></p>
+<p>Missing columns are filled with zero and reported, so a partially
+overlapping schema still loads. That one change would convert the accuracy
+figure from "the model learned this dataset" into a genuine measured detection
+rate — which is the main thing presently standing between this prototype and a
+deployable tool.</p>
+</section><section><h2>11 &nbsp; Questions you should expect</h2>
+<p>Short, direct answers to the questions most likely to be asked about this
+project.</p><div class="qa"><div class="q">Why machine learning instead of a signature scanner?</div><div>A signature only matches malware someone has already seen and catalogued. It cannot recognise a new variant. A model trained on structural properties does not need the specific sample, only the shape of it, so it can flag something genuinely new.</div></div><div class="qa"><div class="q">Is it safe to scan real malware with this?</div><div>Yes. The file is read into memory as plain data and parsed. It is never written to an executable location, never passed to a shell, never loaded as a library and never run. Analysing a sample is about as risky as looking at a photograph of one.</div></div><div class="qa"><div class="q">What is entropy, in one sentence?</div><div>A measure of how unpredictable the bytes are, from 0 to 8. Normal code and text score low because they repeat; compressed or encrypted data scores near 8 because it looks random, which is why a high value suggests something is being hidden.</div></div><div class="qa"><div class="q">Why three verdicts instead of malicious or clean?</div><div>Some files genuinely sit on the boundary, and legitimate packed software trips many of the same indicators as malware. Forcing a binary answer on those produces a confident guess. Saying 'a person should look at this' is more honest and more useful.</div></div><div class="qa"><div class="q">Why was Random Forest chosen over XGBoost?</div><div>Models are selected on ROC-AUC, which does not depend on a threshold. Random Forest scored 0.9963 against XGBoost's 0.9962 — very close, and the selection rule picked the higher one. XGBoost was actually better on raw accuracy, and the comparison is recorded rather than hidden.</div></div><div class="qa"><div class="q">What does calibration mean here?</div><div>A raw forest vote of 0.8 does not reliably mean an 80% chance of being malicious. Isotonic calibration corrects those scores against held-out data so the number shown to a user carries its plain meaning. It improved the Brier score from 0.0178 to 0.012, where lower is better.</div></div><div class="qa"><div class="q">Why is the accuracy figure not a detection rate?</div><div>The malicious half of the training data is synthesised from documented behaviour profiles, not collected from live samples. The figure shows the model learned the relationship present in that data. It is not a measured detection rate against real malware in the wild, and should never be quoted as one.</div></div><div class="qa"><div class="q">What stops the model being tested on files it trained on?</div><div>Several rows descend from the same source binary. The split is done by source binary rather than by row, so no binary appears on both sides. The trainer asserts this and records 0 leaked files.</div></div><div class="qa"><div class="q">What happens to a file that is not a Windows program?</div><div>The model is not asked, because it was trained only on parsable Windows executables and would be guessing outside its experience. Such files are scored from content signals instead — rules, strings, entropy — and the verdict states which engine produced it and that the evidence is weaker.</div></div><div class="qa"><div class="q">What is the single biggest limitation?</div><div>Static analysis cannot observe behaviour. A file that only decrypts its payload once running leaves very little on disk to detect. That is why sandbox analysis is the most valuable future addition.</div></div></section><section><h2>12 &nbsp; Quick reference</h2>
+
+<h3>Terms in one line each</h3>
+<table class=""><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody><tr><td><b>PE</b> (Portable Executable)</td><td>The file format of every Windows <code>.exe</code> and <code>.dll</code>.</td></tr><tr><td><b>Entropy</b></td><td>How unpredictable the bytes are, 0&ndash;8. High suggests compression or encryption &mdash; something hidden.</td></tr><tr><td><b>Packing</b></td><td>Compressing or encrypting a program so its real contents are not visible until it runs. Used legitimately too, which is why it is a hint, not proof.</td></tr><tr><td><b>Imports</b></td><td>The Windows functions a program borrows. Which ones it asks for says a lot about what it intends to do.</td></tr><tr><td><b>Section</b></td><td>A named region of a program &mdash; code, data, resources &mdash; each with permissions to read, write or execute.</td></tr><tr><td><b>Overlay</b></td><td>Data appended past the program's proper end. A common hiding place.</td></tr><tr><td><b>YARA</b></td><td>The industry-standard language for writing malware pattern rules.</td></tr><tr><td><b>ROC-AUC</b></td><td>How well a model ranks malicious above benign, independent of any threshold. 1.0 is perfect, 0.5 is guessing.</td></tr><tr><td><b>Calibration</b></td><td>Adjusting raw scores so a stated probability means what it says.</td></tr><tr><td><b>Ablation</b></td><td>Changing one input and re-measuring, to find out how much that input mattered.</td></tr><tr><td><b>False positive</b></td><td>A harmless file wrongly flagged as malicious.</td></tr><tr><td><b>False negative</b></td><td>A malicious file wrongly cleared.</td></tr></tbody></table>
+
+<h3>Where everything lives</h3>
+<table class=""><thead><tr><th>Path</th><th>Responsibility</th></tr></thead><tbody><tr><td><code>app.py</code></td><td>Web interface entry point</td></tr><tr><td><code>malscan_cli.py</code></td><td>Command-line scanner</td></tr><tr><td><code>malscan/config.py</code></td><td>Every path, limit and threshold &mdash; no magic numbers elsewhere</td></tr><tr><td><code>malscan/scanner.py</code></td><td>The scan pipeline; the single function the interface calls</td></tr><tr><td><code>malscan/features/</code></td><td>The 73-feature contract and all the extractors</td></tr><tr><td><code>malscan/rules/</code></td><td>The 27 YARA rules and the matching engine</td></tr><tr><td><code>malscan/model/</code></td><td>Dataset building, training, inference, explanation</td></tr><tr><td><code>malscan/storage/</code></td><td>SQLite scan history</td></tr><tr><td><code>malscan/ui/</code></td><td>The six interface pages</td></tr><tr><td><code>tests/test_malscan.py</code></td><td>31 tests, runnable without pytest</td></tr></tbody></table>
+
+<h3>Running it</h3>
+<p><code>pip install -r requirements.txt</code> &mdash; install dependencies<br>
+<code>python -m malscan.model.train</code> &mdash; build the model<br>
+<code>streamlit run app.py</code> &mdash; launch the web interface<br>
+<code>python malscan_cli.py file.exe</code> &mdash; scan from the command line<br>
+<code>python tests/test_malscan.py</code> &mdash; run the test suite</p>
+<p class="sub">The app runs before training too; it falls back to a transparent
+heuristic scorer and says so on every verdict rather than pretending there is a
+model behind it.</p>
+</section></body></html>

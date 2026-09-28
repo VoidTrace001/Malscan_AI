@@ -1,0 +1,32 @@
+# MalScan AI - dependencies
+# Install with:  pip install -r requirements.txt
+
+# --- web interface ---------------------------------------------------
+streamlit>=1.50
+
+# --- machine learning ------------------------------------------------
+scikit-learn>=1.3
+xgboost>=2.0
+joblib>=1.3
+
+# --- data handling ---------------------------------------------------
+pandas>=2.0
+numpy>=1.24
+
+# --- static file analysis --------------------------------------------
+pefile>=2023.2.7
+
+# --- visualisation ---------------------------------------------------
+plotly>=5.18
+
+# --- optional, with graceful fallbacks -------------------------------
+# yara-python: the rule engine falls back to a built-in pure-Python
+#   matcher if this is unavailable, so the app still runs without it.
+yara-python>=4.3
+
+# python-magic: file typing falls back to MalScan's own magic-byte
+#   table if this is unavailable. On Windows install python-magic-bin,
+#   which bundles the libmagic DLLs; on Linux/macOS use python-magic
+#   plus the system libmagic package.
+python-magic-bin>=0.4.14 ; sys_platform == "win32"
+python-magic>=0.4.27 ; sys_platform != "win32"

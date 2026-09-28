@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Trained artefacts and generated data are reproducible -- rebuild with
+#   python -m malscan.model.train
+models/*.joblib
+models/metrics.json
+data/*.db
+data/dataset.csv
+data/dataset.parquet
+
+# Generated test files
+samples/*
+!samples/.gitkeep
+
+.streamlit/secrets.toml
+.idea/
+.vscode/

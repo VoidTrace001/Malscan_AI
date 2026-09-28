@@ -1,0 +1,15 @@
+[theme]
+base = "dark"
+primaryColor = "#4dabf7"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#161b26"
+textColor = "#e6e9ef"
+
+[server]
+# Uploads are held in memory and analysed statically; this cap should stay
+# in step with max_upload_mb in malscan/config.py.
+maxUploadSize = 64
+headless = true
+
+[browser]
+gatherUsageStats = false
